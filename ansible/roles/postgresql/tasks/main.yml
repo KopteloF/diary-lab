@@ -1,0 +1,75 @@
+---
+- name: Require postgres_password
+  ansible.builtin.assert:
+    that:
+      - postgres_password is defined
+      - postgres_password | length > 0
+    fail_msg: "Задай postgres_password в inventory/group_vars/database_secrets.yml"
+
+- name: Install PostgreSQL
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2
+      - acl
+    state: present
+    update_cache: true
+
+- name: Configure listen_address
+  ansible.builtin.lineinfile:
+    path: "{{ pg_conf_dir }}/postgresql.conf"
+    regexp: "^#?listen_addresses\\s*="
+    line: "listen_addresses = '{{ postgres_listen_address }}'"
+  notify: Restart postgresql
+
+- name: Allow app01 in pg_hba
+  ansible.builtin.blockinfile:
+    path: "{{ pg_conf_dir }}/pg_hba.conf"
+    marker: "# {mark} ANSIBLE journalbase app01"
+    block: |
+      host {{ postgres_db }} {{ postgres_user }} {{ postgres_app_cidr }} scram-sha-256
+  notify: Restart postgresql
+
+- name: Create user for DB
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: "{{ postgres_user }}"
+    password: "{{ postgres_password }}"
+    login_unix_socket: /var/run/postgresql
+
+- name: Create DB journalbase
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: "{{ postgres_db }}"
+    owner: "{{ postgres_user }}"
+    login_unix_socket: /var/run/postgresql
+
+- name: Copy schema.sql
+  ansible.builtin.copy:
+    src: schema.sql
+    dest: /tmp/diary-schema.sql
+    mode: '0644'
+
+- name: Check
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_query:
+    login_db: "{{ postgres_db }}"
+    login_unix_socket: /var/run/postgresql
+    query: >
+      SELECT 1 FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'entries'
+  register: entries_check
+  changed_when: false
+
+- name: Apply schema.sql
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_script:
+    login_db: "{{ postgres_db }}"
+    path: /tmp/diary-schema.sql
+    login_unix_socket: /var/run/postgresql
+  when: entries_check.rowcount == 0

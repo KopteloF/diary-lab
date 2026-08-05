@@ -1,0 +1,5 @@
+---
+- name: Restart diary-lab
+  ansible.builtin.systemd:
+    name: diary-lab
+    state: restarted

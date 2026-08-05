@@ -1,0 +1,10 @@
+# Ansible secrets
+ansible/inventory/group_vars/all/secrets.yml
+**/secrets.yml
+!**/secrets.yml.example
+
+# Local / OS junk
+*.retry
+.DS_Store
+__pycache__/
+*.pyc

@@ -1,0 +1,11 @@
+---
+- name: Give the keys in our servers to ssh
+  hosts: servers
+  gather_facts: false
+  tasks:
+    - name: bootstrap ssh
+      ansible.builtin.known_hosts:
+        path: "{{ lookup('env', 'HOME') }}/.ssh/known_hosts"
+        name: "{{ ansible_host }}"
+        key: "{{ lookup('pipe', 'ssh-keyscan -t ed25519 ' + ansible_host + ' 2>/dev/null | grep ssh-ed25519') }}"
+      delegate_to: localhost

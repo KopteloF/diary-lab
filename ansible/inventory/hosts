@@ -1,0 +1,13 @@
+[app]
+app01 ansible_host=192.168.56.12
+
+[database]
+db01 ansible_host=192.168.56.11
+
+[servers:children]
+app
+database
+
+[all:vars]
+ansible_user=roman
+ansible_python_interpreter=/usr/bin/python3

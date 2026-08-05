@@ -1,0 +1,14 @@
+[Unit]
+Description=Diary lab Flask app
+After=network-online.target
+
+[Service]
+User=diary
+Group=diary
+WorkingDirectory=/opt/diary-lab
+EnvironmentFile=/etc/diary-lab.env
+ExecStart=/opt/diary-lab/venv/bin/python /opt/diary-lab/app.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

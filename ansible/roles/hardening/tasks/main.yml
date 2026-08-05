@@ -1,0 +1,73 @@
+---
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Default deny incoming
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Default allow outgoing
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow SSH from bastion
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: 22
+    from_ip: 192.168.56.10
+
+- name: Allow PostgreSQL from app01
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: 5432
+    from_ip: 192.168.56.12
+  when: inventory_hostname in groups['database']
+
+- name: Allow Flask from bastion
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: 8000
+    from_ip: 192.168.56.10
+  when: inventory_hostname in groups['app']
+
+- name: Remove wide SSH allow
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "22"
+    delete: true
+
+- name: Remove Redis allow
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "6379"
+    delete: true
+  when: inventory_hostname in groups['database']
+
+- name: Remove wide Flask allow
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "8000"
+    delete: true
+  when: inventory_hostname in groups['app']
+
+- name: Remove old nginx allow
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: "8080"
+    delete: true
+  when: inventory_hostname in groups['app']
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled

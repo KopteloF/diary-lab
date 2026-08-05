@@ -1,0 +1,5 @@
+---
+timezone: Europe/Moscow
+postgres_db: journalbase
+postgres_user: roman
+postgres_port: 5432

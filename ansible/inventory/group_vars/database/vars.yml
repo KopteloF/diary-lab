@@ -1,0 +1,4 @@
+---
+pg_conf_dir: /etc/postgresql/18/main
+postgres_listen_address: "localhost,192.168.56.11"
+postgres_app_cidr: 192.168.56.12/32
