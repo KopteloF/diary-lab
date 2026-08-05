@@ -19,14 +19,14 @@
     rule: allow
     proto: tcp
     port: 22
-    from_ip: 192.168.56.10
+    from_ip: 10.0.50.10
 
 - name: Allow PostgreSQL from app01
   community.general.ufw:
     rule: allow
     proto: tcp
     port: 5432
-    from_ip: 192.168.56.12
+    from_ip: 10.0.50.12
   when: inventory_hostname in groups['database']
 
 - name: Allow Flask from bastion
@@ -34,7 +34,7 @@
     rule: allow
     proto: tcp
     port: 8000
-    from_ip: 192.168.56.10
+    from_ip: 10.0.50.10
   when: inventory_hostname in groups['app']
 
 - name: Remove wide SSH allow
